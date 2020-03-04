@@ -11,6 +11,7 @@ export class LineChartComponent implements OnInit {
 
   @ViewChild("chart", { static: true }) protected chartContainer: ElementRef;
   svg: any;
+  g: any;
   tooltip: any;
   margin: { top: number; right: number; bottom: number; left: number; };
   contentWidth: number;
@@ -39,10 +40,12 @@ export class LineChartComponent implements OnInit {
     };
 
     this.width = +this.svg.style("width").replace("px", "");
-    debugger
     this.height = +this.svg.style("height").replace("px", "");
+
     this.contentWidth = this.width - this.margin.left - this.margin.right;
     this.contentHeight = this.height - this.margin.top - this.margin.bottom;
+
+    this.g = this.svg.append("g").attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
   }
 
 
@@ -54,12 +57,12 @@ export class LineChartComponent implements OnInit {
     // 5. X scale will use the index of our data
     var xScale = d3.scaleLinear()
       .domain([0, n - 1]) // input
-      .range([0, this.width]); // output
+      .range([0, this.contentWidth]); // output
 
     // 6. Y scale will use the randomly generate number 
     var yScale = d3.scaleLinear()
       .domain([0, 1]) // input 
-      .range([this.height, 0]); // output 
+      .range([this.contentHeight, 0]); // output 
 
     // 7. d3's line generator
     var line = d3.line()
@@ -70,29 +73,26 @@ export class LineChartComponent implements OnInit {
     // 8. An array of objects of length N. Each object has key -> value pair, the key being "y" and the value is a random number
     var dataset = d3.range(n).map(function (d) { return { "y": d3.randomUniform(1)() } })
 
-    this.svg
-      .append("g")
-      .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
-
     // 3. Call the x axis in a group tag
-    this.svg.append("g")
+    this.g.append("g")
       .attr("class", "x axis")
-      .attr("transform", "translate(0," + this.height + ")")
+      .attr("transform", "translate(" + 0 + "," + this.contentHeight + ")")
       .call(d3.axisBottom(xScale)); // Create an axis component with d3.axisBottom
 
     // 4. Call the y axis in a group tag
-    this.svg.append("g")
+    this.g.append("g")
       .attr("class", "y axis")
+      // .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")")
       .call(d3.axisLeft(yScale)); // Create an axis component with d3.axisLeft
 
     // 9. Append the path, bind the data, and call the line generator 
-    this.svg.append("path")
+    this.g.append("path")
       .datum(dataset) // 10. Binds data to the line 
       .attr("class", "line") // Assign a class for styling 
       .attr("d", line); // 11. Calls the line generator 
 
     // 12. Appends a circle for each datapoint 
-    this.svg.selectAll(".dot")
+    this.g.selectAll(".dot")
       .data(dataset)
       .enter().append("circle") // Uses the enter().append() method
       .attr("class", "dot") // Assign a class for styling
@@ -104,38 +104,6 @@ export class LineChartComponent implements OnInit {
         this.attr('class', 'focus')
       })
       .on("mouseout", function () { })
-    //       .on("mousemove", mousemove);
-
-    //   var focus = svg.append("g")
-    //       .attr("class", "focus")
-    //       .style("display", "none");
-
-    //   focus.append("circle")
-    //       .attr("r", 4.5);
-
-    //   focus.append("text")
-    //       .attr("x", 9)
-    //       .attr("dy", ".35em");
-
-    //   svg.append("rect")
-    //       .attr("class", "overlay")
-    //       .attr("width", width)
-    //       .attr("height", height)
-    //       .on("mouseover", function() { focus.style("display", null); })
-    //       .on("mouseout", function() { focus.style("display", "none"); })
-    //       .on("mousemove", mousemove);
-
-    //   function mousemove() {
-    //     var x0 = x.invert(d3.mouse(this)[0]),
-    //         i = bisectDate(data, x0, 1),
-    //         d0 = data[i - 1],
-    //         d1 = data[i],
-    //         d = x0 - d0.date > d1.date - x0 ? d1 : d0;
-    //     focus.attr("transform", "translate(" + x(d.date) + "," + y(d.close) + ")");
-    //     focus.select("text").text(d);
-    //   }
-
-
   }
 
 }
